@@ -15,22 +15,19 @@
  */
 package org.agrona;
 
-
 import java.lang.invoke.*;
 import java.lang.reflect.Method;
 
 /**
- * Great stuff.
+ * {@link UnsafeApi} bootstrapping functionality.
  */
 public final class UnsafeApiBootstrap
 {
-
     /**
      * We don't want instances.
      */
     private UnsafeApiBootstrap()
     {
-
     }
 
     /**
@@ -48,42 +45,30 @@ public final class UnsafeApiBootstrap
         final String methodName,
         final MethodType methodType) throws Throwable
     {
-        System.out.println("UnsafeApiBootstrap.bootstrapArrayBaseOffset");
-
-        // Get Unsafe class from method type
         final Class<?> unsafeClass = methodType.parameterType(0);
 
         try
         {
-            // First try to find the method returning long (Java 25+)
             final Method arrayBaseOffsetMethod = unsafeClass.getMethod("arrayBaseOffset", Class.class);
             final MethodHandle targetMethod = lookup.unreflect(arrayBaseOffsetMethod);
 
-            // Check if method returns long or int
-            final boolean returnsLong = arrayBaseOffsetMethod.getReturnType() == long.class;
-
-            if (returnsLong)
+            if (arrayBaseOffsetMethod.getReturnType() == long.class)
             {
-                System.out.println("arrayBaseOffset returns long");
+                final MethodHandle arrayBaseOffsetConvertToIntMethod = MethodHandles.lookup().findStatic(
+                    UnsafeApiBootstrap.class,
+                    "arrayBaseOffsetConvertToInt",
+                    MethodType.methodType(int.class, long.class));
 
-                // Method returns int, create an adapter to convert to long
-                final MethodType originalType = targetMethod.type();
-                final MethodType intReturnType = originalType.changeReturnType(int.class);
-
-                // Convert int to long
-                final MethodHandle convertedMethod = MethodHandles.explicitCastArguments(
+                // Wrap method to perform a range check before casting to int
+                final MethodHandle safeIntConversion = MethodHandles.filterReturnValue(
                     targetMethod,
-                    intReturnType
+                    arrayBaseOffsetConvertToIntMethod
                 );
 
-                return new ConstantCallSite(convertedMethod);
-
+                return new ConstantCallSite(safeIntConversion);
             }
             else
             {
-                System.out.println("arrayBaseOffset returns int");
-
-                // Method already returns long, use it directly
                 return new ConstantCallSite(targetMethod);
             }
         }
@@ -91,5 +76,21 @@ public final class UnsafeApiBootstrap
         {
             throw new RuntimeException("Failed to create method handle for arrayBaseOffset", e);
         }
+    }
+
+    /**
+     * Casts the return value of Unsafe.arrayBaseOffset from long to int.
+     *
+     * @param value The long value to check.
+     * @return The int value if it fits within the valid range.
+     * @throws ArithmeticException if the value is out of int range.
+     */
+    private static int arrayBaseOffsetConvertToInt(final long value)
+    {
+        if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE)
+        {
+            throw new ArithmeticException("arrayBaseOffset value out of int range: " + value);
+        }
+        return (int)value;
     }
 }
