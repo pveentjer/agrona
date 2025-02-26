@@ -54,7 +54,7 @@ public final class UnsafeApiBootstrap
 
             if (arrayBaseOffsetMethod.getReturnType() == long.class)
             {
-                final MethodHandle arrayBaseOffsetConvertToIntMethod = MethodHandles.lookup().findStatic(
+                final MethodHandle convertToIntMethod = MethodHandles.lookup().findStatic(
                     UnsafeApiBootstrap.class,
                     "arrayBaseOffsetConvertToInt",
                     MethodType.methodType(int.class, long.class));
@@ -62,7 +62,7 @@ public final class UnsafeApiBootstrap
                 // Wrap method to perform a range check before casting to int
                 final MethodHandle safeIntConversion = MethodHandles.filterReturnValue(
                     targetMethod,
-                    arrayBaseOffsetConvertToIntMethod
+                    convertToIntMethod
                 );
 
                 return new ConstantCallSite(safeIntConversion);
@@ -74,7 +74,7 @@ public final class UnsafeApiBootstrap
         }
         catch (final Exception e)
         {
-            throw new RuntimeException("Failed to create method handle for arrayBaseOffset", e);
+            throw new RuntimeException("Failed to create method handle for Unsafe.arrayBaseOffset", e);
         }
     }
 
