@@ -180,7 +180,7 @@ public class UnsafeApiSourceGenerator extends DefaultTask
                     // Add special note for arrayBaseOffset method
                     if (method.getName().equals("arrayBaseOffset"))
                     {
-                        buffer.append("     * @apiNote This method always returns a long regardless of the JDK version.")
+                        buffer.append("     * @apiNote This method always returns a int regardless of the JDK version.")
                             .append(lineSeparator);
                     }
 
@@ -188,10 +188,10 @@ public class UnsafeApiSourceGenerator extends DefaultTask
 
                     buffer.append("    public static ");
 
-                    // Check if this is the arrayBaseOffset method and force long return type
+                    // Check if this is the arrayBaseOffset method and force int return type
                     if (method.getName().equals("arrayBaseOffset"))
                     {
-                        buffer.append("long");
+                        buffer.append("int");
                     }
                     else
                     {

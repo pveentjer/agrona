@@ -40,7 +40,7 @@ public final class BufferUtil
     /**
      * Byte array base offset.
      */
-    public static final long ARRAY_BASE_OFFSET = UnsafeApi.arrayBaseOffset(byte[].class);
+    public static final int ARRAY_BASE_OFFSET = UnsafeApi.arrayBaseOffset(byte[].class);
 
     /**
      * Offset of the {@code java.nio.ByteBuffer#hb} field.

@@ -98,7 +98,6 @@ public final class UnsafeApiBytecodeGenerator implements Plugin
                     final @NotNull Context implementationContext,
                     final @NotNull MethodDescription instrumentedMethod)
                 {
-
                     // Load the UNSAFE static field
                     methodVisitor.visitFieldInsn(
                         Opcodes.GETSTATIC,
@@ -106,10 +105,10 @@ public final class UnsafeApiBytecodeGenerator implements Plugin
                         "UNSAFE",
                         Type.getDescriptor(UNSAFE_CLASS));
 
-                    // First load the Class parameter (at index 0 for static methods)
+                    // Load the Class parameter (at index 0 for static methods)
                     methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
 
-                        // Create a handle to the bootstrap method
+                    // Create a handle to the bootstrap method
                     Handle bootstrapHandle = new Handle(
                         Opcodes.H_INVOKESTATIC,
                         "org/agrona/UnsafeApiBootstrap",
@@ -120,12 +119,12 @@ public final class UnsafeApiBytecodeGenerator implements Plugin
                     // Generate the INVOKEDYNAMIC instruction
                     methodVisitor.visitInvokeDynamicInsn(
                         "arrayBaseOffset",
-                        "(Ljdk/internal/misc/Unsafe;Ljava/lang/Class;)J",
+                        "(Ljdk/internal/misc/Unsafe;Ljava/lang/Class;)I",
                         bootstrapHandle
                     );
 
-                    // Return the long value
-                    methodVisitor.visitInsn(Opcodes.LRETURN);
+                    // Return the int value
+                    methodVisitor.visitInsn(Opcodes.IRETURN);
 
                     // We only need 2 stack slots (for the class and unsafe instance)
                     // and 1 local variable (the class parameter)
@@ -134,7 +133,6 @@ public final class UnsafeApiBytecodeGenerator implements Plugin
             };
         }
     }
-
 
     enum GetUnsafeMethodByteCode implements ByteCodeAppender
     {
@@ -237,8 +235,6 @@ public final class UnsafeApiBytecodeGenerator implements Plugin
         {
             if (method.getName().equals("arrayBaseOffset")) {
                 // Special handling for arrayBaseOffset using INVOKEDYNAMIC
-                // todo: I don't see any invoke dynamic here.
-                // I don't see the call to the UnsafeApiBootstrap.bootstrapArrayBaseOffset
                 newBuilder = newBuilder
                     .method(named("arrayBaseOffset").and(takesArguments(Class.class)))
                     .intercept(ArrayBaseOffsetImplementation.INSTANCE);

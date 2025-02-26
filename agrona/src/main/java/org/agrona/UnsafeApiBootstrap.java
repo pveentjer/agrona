@@ -66,24 +66,25 @@ public final class UnsafeApiBootstrap
             {
                 System.out.println("arrayBaseOffset returns long");
 
-                // Method already returns long, use it directly
-                return new ConstantCallSite(targetMethod);
+                // Method returns int, create an adapter to convert to long
+                final MethodType originalType = targetMethod.type();
+                final MethodType intReturnType = originalType.changeReturnType(int.class);
+
+                // Convert int to long
+                final MethodHandle convertedMethod = MethodHandles.explicitCastArguments(
+                    targetMethod,
+                    intReturnType
+                );
+
+                return new ConstantCallSite(convertedMethod);
+
             }
             else
             {
                 System.out.println("arrayBaseOffset returns int");
 
-                // Method returns int, create an adapter to convert to long
-                final MethodType originalType = targetMethod.type();
-                final MethodType longReturnType = originalType.changeReturnType(long.class);
-
-                // Convert int to long
-                final MethodHandle convertedMethod = MethodHandles.explicitCastArguments(
-                    targetMethod,
-                    longReturnType
-                );
-
-                return new ConstantCallSite(convertedMethod);
+                // Method already returns long, use it directly
+                return new ConstantCallSite(targetMethod);
             }
         }
         catch (final Exception e)

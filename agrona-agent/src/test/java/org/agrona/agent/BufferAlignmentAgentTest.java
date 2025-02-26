@@ -40,8 +40,7 @@ class BufferAlignmentAgentTest
     private static final CharSequence TEST_CHAR_SEQUENCE = new StringBuilder("BufferAlignmentTest");
 
     //on 32-bits JVMs, array content is not 8-byte aligned => need to add 4 bytes offset
-    // todo: ugly
-    private static final int HEAP_BUFFER_ALIGNMENT_OFFSET = (int)(UnsafeApi.arrayBaseOffset(byte[].class) % 8);
+    private static final int HEAP_BUFFER_ALIGNMENT_OFFSET = UnsafeApi.arrayBaseOffset(byte[].class) % 8;
 
     @BeforeAll
     static void installAgent()

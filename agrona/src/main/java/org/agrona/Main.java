@@ -35,7 +35,7 @@ public final class Main
      */
     public static void main(final String[] args)
     {
-        final long offset = UnsafeApi.arrayBaseOffset(String[].class);
+        final int offset = UnsafeApi.arrayBaseOffset(String[].class);
         System.out.println("arrayBaseOffset:" + offset);
     }
 }
